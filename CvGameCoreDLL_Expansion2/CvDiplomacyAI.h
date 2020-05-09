@@ -159,6 +159,18 @@ public:
 	int GetNumMajorCivApproach(MajorCivApproachTypes eApproach, bool bHideTrueFeelings = false) const;
 
 	/////////////////////////////////////////////////////////
+	// Minor Civs
+	/////////////////////////////////////////////////////////
+
+	MinorCivApproachTypes GetMinorCivApproach(PlayerTypes eMinor) const;
+	void SetMinorCivApproach(PlayerTypes eMinor, MinorCivApproachTypes eApproach);
+
+	bool IsWantToRouteConnectToMinor(PlayerTypes eMinor);
+	void SetWantToRouteConnectToMinor(PlayerTypes eMinor, bool bWant);
+
+	int GetNumMinorCivApproach(MinorCivApproachTypes eApproach) const;
+
+	/////////////////////////////////////////////////////////
 	// Turn Stuff
 	/////////////////////////////////////////////////////////
 
@@ -202,13 +214,6 @@ public:
 	// Minor Civs
 	void DoUpdateMinorCivApproaches();
 	MinorCivApproachTypes GetBestApproachTowardsMinorCiv(PlayerTypes ePlayer, bool bLookAtOtherPlayers, std::map<PlayerTypes, MinorCivApproachTypes>& oldApproaches, bool bLog);
-
-	MinorCivApproachTypes GetMinorCivApproach(PlayerTypes ePlayer) const;
-	void SetMinorCivApproach(PlayerTypes ePlayer, MinorCivApproachTypes eApproach);
-	int GetNumMinorCivApproach(MinorCivApproachTypes eApproach) const;
-
-	void SetWantToRouteConnectToMinor(PlayerTypes eMinor, bool bWant);
-	bool IsWantToRouteConnectToMinor(PlayerTypes eMinor);
 
 	bool IsHasActiveGoldQuest();
 
@@ -1754,6 +1759,10 @@ private:
 		int* m_apaiApproachValues[MAX_MAJOR_CIVS];
 		char m_aeWarFace[MAX_MAJOR_CIVS];
 
+		// Minor Civ Approach
+		char m_aeMinorCivApproach[MAX_MINOR_CIVS];
+		bool m_abWantToRouteToMinor[MAX_MINOR_CIVS];
+
 		char m_aeMinorCivApproach[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
 		char m_aeOpinionTowardsUsGuess[MAX_MAJOR_CIVS];
 		char m_aeApproachTowardsUsGuess[MAX_MAJOR_CIVS];
@@ -1770,7 +1779,6 @@ private:
 		bool m_abWantsDefensivePactWithPlayer[MAX_MAJOR_CIVS];
 		bool m_abWantsSneakAttack[MAX_MAJOR_CIVS];
 #endif
-		bool m_abWantToRouteToMinor[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
 		char m_aeWarState[REALLY_MAX_PLAYERS];
 		char m_aeWarProjection[REALLY_MAX_PLAYERS];
 		char m_aeLastWarProjection[REALLY_MAX_PLAYERS];
@@ -2101,11 +2109,13 @@ private:
 	int** m_peaaiApproachValues;
 	char* m_paeWarFace;
 
+	// Minor Civs
+	char* m_paeMinorCivApproach;
+	bool* m_pabWantToRouteToMinor;
+
 	char** m_ppaaeOtherPlayerMajorCivOpinion;
 	char** m_ppaaeOtherPlayerMajorCivApproach;
 	short** m_ppaaiOtherPlayerMajorCivApproachCounter;
-
-	char* m_paeMinorCivApproach;
 	char* m_paeOpinionTowardsUsGuess;
 	char* m_paeApproachTowardsUsGuess;
 	char* m_paeApproachTowardsUsGuessCounter;
@@ -2134,7 +2144,7 @@ private:
 	short* m_paiDoFValue;
 	short* m_paiCompetitorValue;
 #endif
-	bool* m_pabWantToRouteToMinor;
+
 
 	char* m_paeWarState;
 	char* m_paeWarProjection;

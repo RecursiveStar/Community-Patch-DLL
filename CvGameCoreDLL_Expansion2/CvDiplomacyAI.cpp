@@ -34,7 +34,8 @@ CvDiplomacyAI::DiplomacyAIData::DiplomacyAIData() :
 	, m_aaiApproachValues()
 	, m_apaiApproachValues()
 	, m_aeWarFace()
-	, m_aeMinorCivApproach()
+	, m_aeMinorCivApproach() // Minor Civs
+	, m_abWantToRouteToMinor()
 	, m_aeOpinionTowardsUsGuess()
 	, m_aeApproachTowardsUsGuess()
 	, m_aeApproachTowardsUsGuessCounter()
@@ -45,7 +46,6 @@ CvDiplomacyAI::DiplomacyAIData::DiplomacyAIData() :
 	, m_abArmyInPlaceForAttack()
 	, m_abEasyTarget()
 	, m_abWantsResearchAgreementWithPlayer()
-	, m_abWantToRouteToMinor()
 	, m_aeWarState()
 	, m_aeWarProjection()
 	, m_aeWarGoal()
@@ -241,10 +241,13 @@ CvDiplomacyAI::CvDiplomacyAI():
 	m_peaaiApproachValues(NULL),
 	m_paeWarFace(NULL),
 
+	// Minor Civs
+	m_paeMinorCivApproach(NULL),
+	m_pabWantToRouteToMinor(NULL),
+
 	m_ppaaeOtherPlayerMajorCivOpinion(NULL),
 	m_ppaaeOtherPlayerMajorCivApproach(NULL),
 	m_ppaaiOtherPlayerMajorCivApproachCounter(NULL),
-	m_paeMinorCivApproach(NULL),
 	m_paeOpinionTowardsUsGuess(NULL),
 	m_paeApproachTowardsUsGuess(NULL),
 	m_paeApproachTowardsUsGuessCounter(NULL),
@@ -255,7 +258,6 @@ CvDiplomacyAI::CvDiplomacyAI():
 	m_pabArmyInPlaceForAttack(NULL),
 	m_pabEasyTarget(NULL),
 	m_pabWantsResearchAgreementWithPlayer(NULL),
-	m_pabWantToRouteToMinor(NULL),
 	m_paeWarState(NULL),
 	m_paeWarProjection(NULL),
 	m_paeLastWarProjection(NULL),
@@ -273,7 +275,6 @@ CvDiplomacyAI::CvDiplomacyAI():
 	m_paePlayerMinorCivDisputeLevel(NULL),
 	m_ppaaeOtherPlayerLandDisputeLevel(NULL),
 	m_ppaaeOtherPlayerVictoryDisputeLevel(NULL),
-
 	m_paeWarDamageLevel(NULL),
 	m_paiWarValueLost(NULL),
 	m_ppaaeOtherPlayerWarDamageLevel(NULL),
@@ -531,7 +532,10 @@ void CvDiplomacyAI::Init(CvPlayer* pPlayer)
 	}
 	m_paeWarFace = &m_pDiploData->m_aeWarFace[0];
 
+	// Minor Civs
 	m_paeMinorCivApproach = &m_pDiploData->m_aeMinorCivApproach[0];
+	m_pabWantToRouteToMinor = &m_pDiploData->m_abWantToRouteToMinor[0];
+
 	m_paeOpinionTowardsUsGuess = &m_pDiploData->m_aeOpinionTowardsUsGuess[0];
 	m_paeApproachTowardsUsGuess = &m_pDiploData->m_aeApproachTowardsUsGuess[0];
 	m_paeApproachTowardsUsGuessCounter = &m_pDiploData->m_aeApproachTowardsUsGuessCounter[0];
@@ -542,7 +546,6 @@ void CvDiplomacyAI::Init(CvPlayer* pPlayer)
 	m_pabArmyInPlaceForAttack = &m_pDiploData->m_abArmyInPlaceForAttack[0];
 	m_pabEasyTarget = &m_pDiploData->m_abEasyTarget[0];
 	m_pabWantsResearchAgreementWithPlayer = &m_pDiploData->m_abWantsResearchAgreementWithPlayer[0];
-	m_pabWantToRouteToMinor = &m_pDiploData->m_abWantToRouteToMinor[0];
 	m_paeWarState = &m_pDiploData->m_aeWarState[0];
 	m_paeWarProjection = &m_pDiploData->m_aeWarProjection[0];
 	m_paeLastWarProjection = &m_pDiploData->m_aeLastWarProjection[0];
@@ -867,7 +870,10 @@ void CvDiplomacyAI::Uninit()
 	m_peaaiApproachValues = NULL;
 	m_paeWarFace = NULL;
 
+	// Minor Civs
 	m_paeMinorCivApproach = NULL;
+	m_pabWantToRouteToMinor = NULL;
+
 	m_paeOpinionTowardsUsGuess = NULL;
 	m_paeApproachTowardsUsGuess = NULL;
 	m_paeApproachTowardsUsGuessCounter = NULL;
@@ -878,7 +884,6 @@ void CvDiplomacyAI::Uninit()
 	m_pabArmyInPlaceForAttack = NULL;
 	m_pabEasyTarget = NULL;
 	m_pabWantsResearchAgreementWithPlayer = NULL;
-	m_pabWantToRouteToMinor = NULL;
 	m_paeWarState = NULL;
 	m_paeWarProjection = NULL;
 	m_paeLastWarProjection = NULL;
@@ -1169,6 +1174,13 @@ void CvDiplomacyAI::Reset()
 		m_paeWarFace[iI] = NO_WAR_FACE_TYPE;
 	}
 
+	// Minor Civs
+	for (iI = 0; iI < MAX_MINOR_CIVS; iI++)
+	{
+		m_paeMinorCivApproach[iI] = NO_MINOR_CIV_APPROACH;
+		m_pabWantToRouteToMinor[iI] = true;
+	}
+
 	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 	{
 		m_paeOpinionTowardsUsGuess[iI] = NO_MAJOR_CIV_OPINION;
@@ -1384,12 +1396,6 @@ void CvDiplomacyAI::Reset()
 #endif
 	}
 
-	for(iI = 0; iI < MAX_MINOR_CIVS; iI++)
-	{
-		m_paeMinorCivApproach[iI] = NO_MINOR_CIV_APPROACH;
-		m_pabWantToRouteToMinor[iI] = true;
-	}
-
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		m_paiNumWondersBeatenTo[iI] = 0;
@@ -1527,6 +1533,13 @@ void CvDiplomacyAI::Read(FDataStream& kStream)
 	ArrayWrapper<char> wrapm_paeWarFace(MAX_MAJOR_CIVS, m_paeWarFace);
 	kStream >> wrapm_paeWarFace;
 
+	// Minor Civs
+	ArrayWrapper<char> wrapm_paeMinorCivApproach(MAX_MINOR_CIVS, m_paeMinorCivApproach);
+	kStream >> wrapm_paeMinorCivApproach;
+
+	ArrayWrapper<bool> wrapm_pabWantToRouteToMinor(MAX_MINOR_CIVS, m_pabWantToRouteToMinor);
+	kStream >> wrapm_pabWantToRouteToMinor;
+
 	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 	{
 		ArrayWrapper<char> wrapOtherMajorOpinion(MAX_MAJOR_CIVS, m_ppaaeOtherPlayerMajorCivOpinion[iI]);
@@ -1545,9 +1558,6 @@ void CvDiplomacyAI::Read(FDataStream& kStream)
 		kStream >> wrapCoopWarCounter;
 	}
 
-	ArrayWrapper<char> wrapm_paeMinorCivApproach(MAX_MINOR_CIVS, m_paeMinorCivApproach);
-	kStream >> wrapm_paeMinorCivApproach;
-
 	ArrayWrapper<char> wrapm_paeOpinionTowardsUsGuess(MAX_MAJOR_CIVS, m_paeOpinionTowardsUsGuess);
 	kStream >> wrapm_paeOpinionTowardsUsGuess;
 
@@ -1556,7 +1566,6 @@ void CvDiplomacyAI::Read(FDataStream& kStream)
 
 	ArrayWrapper<char> wrapm_paeApproachTowardsUsGuessCounter(MAX_MAJOR_CIVS, m_paeApproachTowardsUsGuessCounter);
 	kStream >> wrapm_paeApproachTowardsUsGuessCounter;
-
 
 	ArrayWrapper<short> wrapm_paiNumWondersBeatenTo(MAX_CIV_PLAYERS, m_paiNumWondersBeatenTo);
 	kStream >> wrapm_paiNumWondersBeatenTo;
@@ -1570,10 +1579,6 @@ void CvDiplomacyAI::Read(FDataStream& kStream)
 
 	ArrayWrapper<bool> wrapm_pabWantsResearchAgreementWithPlayer(MAX_MAJOR_CIVS, m_pabWantsResearchAgreementWithPlayer);
 	kStream >> wrapm_pabWantsResearchAgreementWithPlayer;
-
-	ArrayWrapper<bool> wrapm_pabWantToRouteToMinor(MAX_MINOR_CIVS, m_pabWantToRouteToMinor);
-	kStream >> wrapm_pabWantToRouteToMinor;
-
 
 	ArrayWrapper<short> wrapm_paeWantPeaceCounter(MAX_CIV_PLAYERS, m_paeWantPeaceCounter);
 	kStream >> wrapm_paeWantPeaceCounter;
@@ -2239,6 +2244,10 @@ void CvDiplomacyAI::Write(FDataStream& kStream) const
 	}
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paeWarFace);
 
+	// Minor Civs
+	kStream << ArrayWrapper<char>(MAX_MINOR_CIVS, m_paeMinorCivApproach);
+	kStream << ArrayWrapper<bool>(MAX_MINOR_CIVS, m_pabWantToRouteToMinor);
+
 	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 	{
 		kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_ppaaeOtherPlayerMajorCivOpinion[iI]);
@@ -2248,7 +2257,6 @@ void CvDiplomacyAI::Write(FDataStream& kStream) const
 		kStream << ArrayWrapper<short>(MAX_MAJOR_CIVS, m_ppaaiCoopWarCounter[iI]);
 	}
 
-	kStream << ArrayWrapper<char>(MAX_MINOR_CIVS, m_paeMinorCivApproach);
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paeOpinionTowardsUsGuess);
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paeApproachTowardsUsGuess);
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paeApproachTowardsUsGuessCounter);
@@ -2258,7 +2266,6 @@ void CvDiplomacyAI::Write(FDataStream& kStream) const
 	kStream << ArrayWrapper<bool>(MAX_CIV_PLAYERS, m_pabEasyTarget);
 
 	kStream << ArrayWrapper<bool>(MAX_MAJOR_CIVS, m_pabWantsResearchAgreementWithPlayer);
-	kStream << ArrayWrapper<bool>(MAX_MINOR_CIVS, m_pabWantToRouteToMinor);
 
 	kStream << ArrayWrapper<short>(MAX_CIV_PLAYERS, m_paeWantPeaceCounter);
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paePeaceTreatyWillingToOffer);
@@ -2986,6 +2993,10 @@ bool CvDiplomacyAI::IsScientist() const
 // Memory Management
 // ************************************
 
+////////////////////////////////////
+// OPINION
+////////////////////////////////////
+
 /// What is our Diplomatic Opinion of this Major Civ?
 MajorCivOpinionTypes CvDiplomacyAI::GetMajorCivOpinion(PlayerTypes ePlayer) const
 {
@@ -3084,6 +3095,10 @@ MajorCivOpinionTypes CvDiplomacyAI::GetNeighborOpinion(PlayerTypes ePlayer) cons
 }
 
 //	-----------------------------------------------------------------------------------------------
+
+////////////////////////////////////
+// APPROACH
+////////////////////////////////////
 
 /// What is our Diplomatic Approach towards this Major Civ?
 MajorCivApproachTypes CvDiplomacyAI::GetMajorCivApproach(PlayerTypes ePlayer, bool bHideTrueFeelings) const
@@ -3194,6 +3209,84 @@ int CvDiplomacyAI::GetNumMajorCivApproach(MajorCivApproachTypes eApproach, bool 
 	{
 		eMajor = (PlayerTypes) iMajorLoop;
 		if (GetMajorCivApproach(eMajor, bHideTrueFeelings) == eApproach)
+		{
+			iCount++;
+		}
+	}
+
+	return iCount;
+}
+
+//	-----------------------------------------------------------------------------------------------
+
+////////////////////////////////////
+// MINOR CIVS
+////////////////////////////////////
+
+/// What is our Diplomatic Approach towards this Minor Civ?
+MinorCivApproachTypes CvDiplomacyAI::GetMinorCivApproach(PlayerTypes eMinor) const
+{
+	// Remove the Majors from here, since we're only actually storing Data for the Minors
+	int iMinorIndex = ((int) eMinor - MAX_MAJOR_CIVS);
+
+	CvAssertMsg(iMinorIndex >= 0 && iMinorIndex < MAX_MINOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function GetMinorCivApproach.");
+	if (iMinorIndex < 0 || iMinorIndex >= MAX_MINOR_CIVS) return NO_MINOR_CIV_APPROACH;
+
+	return (MinorCivApproachTypes) m_paeMinorCivApproach[iMinorIndex];
+}
+
+/// Sets what our Diplomatic Approach is towards a Minor Civ
+void CvDiplomacyAI::SetMinorCivApproach(PlayerTypes eMinor, MinorCivApproachTypes eApproach)
+{
+	// Remove the Majors from here, since we're only actually storing Data for the Minors
+	int iMinorIndex = ((int) eMinor - MAX_MAJOR_CIVS);
+
+	CvAssertMsg(iMinorIndex >= 0 && iMinorIndex < MAX_MINOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function SetMinorCivApproach.");
+	CvAssertMsg(eApproach >= 0 && eApproach < NUM_MINOR_CIV_APPROACHES, "DIPLOMACY AI: Invalid MinorCivApproachType when calling function SetMinorCivApproach.");
+	if (iMinorIndex < 0 || iMinorIndex >= MAX_MINOR_CIVS) return;
+	if (eApproach < 0 || eApproach >= NUM_MINOR_CIV_APPROACHES) return;
+
+	m_paeMinorCivApproach[iMinorIndex] = eApproach;
+}
+
+/// Does this AI want to connect to a minor with a route?
+bool CvDiplomacyAI::IsWantToRouteConnectToMinor(PlayerTypes eMinor)
+{
+	// Remove the Majors from here, since we're only actually storing Data for the Minors
+	int iMinorIndex = ((int) eMinor - MAX_MAJOR_CIVS);
+
+	CvAssertMsg(iMinorIndex >= 0 && iMinorIndex < MAX_MINOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function IsWantToRouteConnectToMinor.");
+	if (iMinorIndex < 0 || iMinorIndex >= MAX_MINOR_CIVS) return;
+
+	return (bool) m_pabWantToRouteToMinor[iArrayIndex];
+}
+
+/// Sets if this AI want to connect to a minor with a route
+void CvDiplomacyAI::SetWantToRouteConnectToMinor(PlayerTypes eMinor, bool bWant)
+{
+	// Remove the Majors from here, since we're only actually storing Data for the Minors
+	int iMinorIndex = ((int) eMinor - MAX_MAJOR_CIVS);
+
+	CvAssertMsg(iMinorIndex >= 0 && iMinorIndex < MAX_MINOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function SetWantToRouteConnectToMinor.");
+	if (iMinorIndex < 0 || iMinorIndex >= MAX_MINOR_CIVS) return;
+
+	m_pabWantToRouteToMinor[iArrayIndex] = bWant;
+}
+
+/// How many Minors do we have a particular Approach towards?
+int CvDiplomacyAI::GetNumMinorCivApproach(MinorCivApproachTypes eApproach) const
+{
+	CvAssertMsg(eApproach >= 0 && eApproach < NUM_MINOR_CIV_APPROACHES, "DIPLOMACY AI: Invalid MinorCivApproachType when calling function GetNumMinorCivApproach.");
+	if (eApproach < 0 || eApproach >= NUM_MINOR_CIV_APPROACHES) return 0;
+
+	PlayerTypes eMinor;
+	int iCount = 0;
+
+	for (int iMinorLoop = 0; iMinorLoop < MAX_MINOR_CIVS; iMinorLoop++)
+	{
+		eMinor = (PlayerTypes) iMinorLoop;
+
+		if (GetMinorCivApproach(eMinor) == eApproach)
 		{
 			iCount++;
 		}
@@ -10082,68 +10175,6 @@ MinorCivApproachTypes CvDiplomacyAI::GetBestApproachTowardsMinorCiv(PlayerTypes 
 	}
 
 	return eApproach;
-}
-
-/// What is our Diplomatic Approach towards this Minor Civ?
-MinorCivApproachTypes CvDiplomacyAI::GetMinorCivApproach(PlayerTypes ePlayer) const
-{
-	// Remove the Majors from here, since we're only actually storing Data for the Minors
-	PlayerTypes eMinor = (PlayerTypes)((int) ePlayer - MAX_MAJOR_CIVS);
-
-	CvAssertMsg(eMinor >= 0, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(eMinor < MAX_MINOR_CIVS, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	return (MinorCivApproachTypes) m_paeMinorCivApproach[eMinor];
-}
-
-/// Sets what our Diplomatic Approach is towards a Minor Civ
-void CvDiplomacyAI::SetMinorCivApproach(PlayerTypes ePlayer, MinorCivApproachTypes eApproach)
-{
-	// Remove the Majors from here, since we're only actually storing Data for the Minors
-	PlayerTypes eMinor = (PlayerTypes)((int) ePlayer - MAX_MAJOR_CIVS);
-
-	CvAssertMsg(eMinor >= 0, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(eMinor < MAX_MINOR_CIVS, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(eApproach >= NO_MINOR_CIV_APPROACH, "DIPLOMACY_AI: Invalid MinorCivApproachType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");		// NO_MINOR_CIV_APPROACH is valid because we use it to reset at the start of every turn.  We have an assert to test -1 there.
-	CvAssertMsg(eApproach < NUM_MINOR_CIV_APPROACHES, "DIPLOMACY_AI: Invalid MinorCivApproachType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-
-	m_paeMinorCivApproach[eMinor] = eApproach;
-}
-
-/// How many Minors do we have a particular Approach towards?
-int CvDiplomacyAI::GetNumMinorCivApproach(MinorCivApproachTypes eApproach) const
-{
-	CvAssertMsg(eApproach >= 0, "DIPLOMACY_AI: Invalid MinorCivApproachType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(eApproach < NUM_MINOR_CIV_APPROACHES, "DIPLOMACY_AI: Invalid MinorCivApproachType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-
-	int iCount = 0;
-
-	for(int iMinorLoop = 0; iMinorLoop < MAX_MINOR_CIVS; iMinorLoop++)
-	{
-		if(GetMinorCivApproach((PlayerTypes) iMinorLoop) == eApproach)
-		{
-			iCount++;
-		}
-	}
-
-	return iCount;
-}
-
-/// Sets if this AI want to connect to a minor with a route
-void CvDiplomacyAI::SetWantToRouteConnectToMinor(PlayerTypes eMinor, bool bWant)
-{
-	int iArrayIndex = eMinor - MAX_MAJOR_CIVS;
-	CvAssertMsg(iArrayIndex >= 0 && iArrayIndex < MAX_MINOR_CIVS, "DIPLOMACY_AI: Index into array is out of bounds");
-
-	if(IsWantToRouteConnectToMinor(eMinor) != bWant)
-		m_pabWantToRouteToMinor[iArrayIndex] = bWant;
-}
-
-/// Does this AI want to connect to a minor with a route?
-bool CvDiplomacyAI::IsWantToRouteConnectToMinor(PlayerTypes eMinor)
-{
-	int iArrayIndex = eMinor - MAX_MAJOR_CIVS;
-	CvAssertMsg(iArrayIndex >= 0 && iArrayIndex < MAX_MINOR_CIVS, "DIPLOMACY_AI: Index into array is out of bounds");
-	return m_pabWantToRouteToMinor[iArrayIndex];
 }
 
 /// Does this AI have a gold quest active with any minor civ?
