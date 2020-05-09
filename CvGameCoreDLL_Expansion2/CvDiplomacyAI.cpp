@@ -1121,19 +1121,19 @@ void CvDiplomacyAI::Reset()
 	}
 
 	// Personality Values
-	m_iVictoryCompetitiveness = -1;
-	m_iWonderCompetitiveness = -1;
-	m_iMinorCivCompetitiveness = -1;
-	m_iBoldness = -1;
-	m_iDiploBalance = -1;
-	m_iWarmongerHate = -1;
-	m_iDenounceWillingness = -1;
-	m_iDoFWillingness = -1;
-	m_iLoyalty = -1;
-	m_iNeediness = -1;
-	m_iForgiveness = -1;
-	m_iChattiness = -1;
-	m_iMeanness = -1;
+	m_iVictoryCompetitiveness = 0;
+	m_iWonderCompetitiveness = 0;
+	m_iMinorCivCompetitiveness = 0;
+	m_iBoldness = 0;
+	m_iDiploBalance = 0;
+	m_iWarmongerHate = 0;
+	m_iDenounceWillingness = 0;
+	m_iDoFWillingness = 0;
+	m_iLoyalty = 0;
+	m_iNeediness = 0;
+	m_iForgiveness = 0;
+	m_iChattiness = 0;
+	m_iMeanness = 0;
 	for (iI = 0; iI < NUM_MAJOR_CIV_APPROACHES; iI++)
 	{
 		m_paiPersonalityMajorCivApproachBiases[iI] = 0;
