@@ -31,8 +31,8 @@ CvDiplomacyAI::DiplomacyAIData::DiplomacyAIData() :
 	, m_aiPersonalityMinorCivApproachBiases()
 	, m_aeMajorCivOpinion() // Opinion
 	, m_aeMajorCivApproach() // Approach
-	, m_aaeApproachValues()
-	, m_apaeApproachValues()
+	, m_aaiApproachValues()
+	, m_apaiApproachValues()
 	, m_aeWarFace()
 	, m_aeMinorCivApproach()
 	, m_aeOpinionTowardsUsGuess()
@@ -238,7 +238,7 @@ CvDiplomacyAI::CvDiplomacyAI():
 
 	// Approach
 	m_paeMajorCivApproach(NULL),
-	m_ppaaeApproachValues(NULL),
+	m_ppaaiApproachValues(NULL),
 	m_paeWarFace(NULL),
 
 	m_ppaaeOtherPlayerMajorCivOpinion(NULL),
@@ -524,10 +524,10 @@ void CvDiplomacyAI::Init(CvPlayer* pPlayer)
 
 	// Approach
 	m_paeMajorCivApproach = &m_pDiploData->m_aeMajorCivApproach[0];
-	m_ppaaeApproachValues = &m_pDiploData->m_apaeApproachValues[0]; // 2D Array Pointer for Approach Values
+	m_ppaaiApproachValues = &m_pDiploData->m_apaiApproachValues[0]; // 2D Array Pointer for Approach Values
 	for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 	{
-		m_ppaaeApproachValues[iI] = &m_pDiploData->m_aaeApproachValues[NUM_MAJOR_CIV_APPROACHES*iI];
+		m_ppaaiApproachValues[iI] = &m_pDiploData->m_aaiApproachValues[NUM_MAJOR_CIV_APPROACHES*iI];
 	}
 	m_paeWarFace = &m_pDiploData->m_aeWarFace[0];
 
@@ -864,7 +864,7 @@ void CvDiplomacyAI::Uninit()
 
 	// Approach
 	m_paeMajorCivApproach = NULL;
-	m_ppaaeApproachValues = NULL;
+	m_ppaaiApproachValues = NULL;
 	m_paeWarFace = NULL;
 
 	m_paeMinorCivApproach = NULL;
@@ -1164,7 +1164,7 @@ void CvDiplomacyAI::Reset()
 		m_paeMajorCivApproach[iI] = NO_MAJOR_CIV_APPROACH;
 		for (iJ = 0; iJ < NUM_MAJOR_CIV_APPROACHES; iJ++)
 		{
-			m_ppaaeApproachValues[iI][iJ] = 0;
+			m_ppaaiApproachValues[iI][iJ] = 0;
 		}
 		m_paeWarFace[iI] = NO_WAR_FACE_TYPE;
 	}
@@ -1517,6 +1517,12 @@ void CvDiplomacyAI::Read(FDataStream& kStream)
 	// Approach
 	ArrayWrapper<char> wrapm_paeMajorCivApproach(MAX_MAJOR_CIVS, m_paeMajorCivApproach);
 	kStream >> wrapm_paeMajorCivApproach;
+
+	for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
+	{
+		ArrayWrapper<int> wrapm_ppaaiApproachValues(NUM_MAJOR_CIV_APPROACHES, m_ppaaiApproachValues[iI]);
+		kStream >> wrapm_ppaaiApproachValues;
+	}
 
 	ArrayWrapper<char> wrapm_paeWarFace(MAX_MAJOR_CIVS, m_paeWarFace);
 	kStream >> wrapm_paeWarFace;
@@ -2227,6 +2233,10 @@ void CvDiplomacyAI::Write(FDataStream& kStream) const
 
 	// Approach
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paeMajorCivApproach);
+	for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
+	{
+		kStream << ArrayWrapper<int>(NUM_MAJOR_CIV_APPROACHES, m_ppaaiApproachValues[iI]);
+	}
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paeWarFace);
 
 	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
@@ -3137,7 +3147,7 @@ int CvDiplomacyAI::GetPlayerApproachValue(PlayerTypes ePlayer, MajorCivApproachT
 	if (ePlayer < 0 || ePlayer >= MAX_MAJOR_CIVS) return 0;
 	if (eApproach < 0 || eApproach >= NUM_MAJOR_CIV_APPROACHES) return 0;
 
-	return (int) m_ppaaeApproachValues[(int)ePlayer][(int)eApproach];
+	return (int) m_ppaaiApproachValues[(int)ePlayer][(int)eApproach];
 }
 
 void CvDiplomacyAI::SetPlayerApproachValue(PlayerTypes ePlayer, MajorCivApproachTypes eApproach, int iValue)
@@ -3148,7 +3158,7 @@ void CvDiplomacyAI::SetPlayerApproachValue(PlayerTypes ePlayer, MajorCivApproach
 	if (eApproach < 0 || eApproach >= NUM_MAJOR_CIV_APPROACHES) return;
 
 	int iSetValue = std::max(0, iValue);
-	m_ppaaeApproachValues[(int)ePlayer][(int)eApproach] = iSetValue;
+	m_ppaaiApproachValues[(int)ePlayer][(int)eApproach] = iSetValue;
 }
 
 /// If we're planning war with ePlayer, how are we acting towards him?

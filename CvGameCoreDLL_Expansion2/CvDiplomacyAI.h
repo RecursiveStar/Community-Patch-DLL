@@ -1750,8 +1750,8 @@ private:
 
 		// Approach
 		char m_aeMajorCivApproach[MAX_MAJOR_CIVS];
-		int m_aaeApproachValues[MAX_MAJOR_CIVS*NUM_MAJOR_CIV_APPROACHES];
-		int* m_apaeApproachValues[MAX_MAJOR_CIVS];
+		int m_aaiApproachValues[MAX_MAJOR_CIVS*NUM_MAJOR_CIV_APPROACHES];
+		int* m_apaiApproachValues[MAX_MAJOR_CIVS];
 		char m_aeWarFace[MAX_MAJOR_CIVS];
 
 		char m_aeMinorCivApproach[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
@@ -2098,7 +2098,7 @@ private:
 
 	// Approach
 	char* m_paeMajorCivApproach;
-	int** m_ppaaeApproachValues;
+	int** m_ppaaiApproachValues;
 	char* m_paeWarFace;
 
 	char** m_ppaaeOtherPlayerMajorCivOpinion;
