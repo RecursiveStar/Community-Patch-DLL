@@ -29,7 +29,7 @@ CvDiplomacyAI::DiplomacyAIData::DiplomacyAIData() :
 	m_aDiploLogStatementTurnCountScratchPad() // Leader Communication
 	, m_aiPersonalityMajorCivApproachBiases() // Personality Values
 	, m_aiPersonalityMinorCivApproachBiases()
-	, m_aeMajorCivOpinion()
+	, m_aeMajorCivOpinion() // Opinion
 	, m_aeMajorCivApproach()
 	, m_aeMinorCivApproach()
 	, m_aeOpinionTowardsUsGuess()
@@ -233,7 +233,9 @@ CvDiplomacyAI::CvDiplomacyAI():
 	m_paiPersonalityMajorCivApproachBiases(NULL),
 	m_paiPersonalityMinorCivApproachBiases(NULL),
 
+	// Opinion
 	m_paeMajorCivOpinion(NULL),
+
 	m_ppaaeApproachValues(NULL),
 	m_ppaaeOtherPlayerMajorCivOpinion(NULL),
 	m_ppaaeOtherPlayerMajorCivApproach(NULL),
@@ -514,7 +516,9 @@ void CvDiplomacyAI::Init(CvPlayer* pPlayer)
 	m_paiPersonalityMajorCivApproachBiases = &m_pDiploData->m_aiPersonalityMajorCivApproachBiases[0];
 	m_paiPersonalityMinorCivApproachBiases = &m_pDiploData->m_aiPersonalityMinorCivApproachBiases[0];
 
+	// Opinion
 	m_paeMajorCivOpinion = &m_pDiploData->m_aeMajorCivOpinion[0];
+
 	m_paeMajorCivApproach = &m_pDiploData->m_aeMajorCivApproach[0];
 	m_paeMinorCivApproach = &m_pDiploData->m_aeMinorCivApproach[0];
 	m_paeOpinionTowardsUsGuess = &m_pDiploData->m_aeOpinionTowardsUsGuess[0];
@@ -853,7 +857,9 @@ void CvDiplomacyAI::Uninit()
 	m_paiPersonalityMajorCivApproachBiases = NULL;
 	m_paiPersonalityMinorCivApproachBiases = NULL;
 
+	// Opinion
 	m_paeMajorCivOpinion = NULL;
+
 	m_paeMajorCivApproach = NULL;
 	m_paeMinorCivApproach = NULL;
 	m_paeOpinionTowardsUsGuess = NULL;
@@ -1145,9 +1151,13 @@ void CvDiplomacyAI::Reset()
 
 	m_eDiploPersonalityType = NO_DIPLO_PERSONALITY_TYPE;
 
-	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
+	for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 	{
 		m_paeMajorCivOpinion[iI] = NO_MAJOR_CIV_OPINION;
+	}
+
+	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
+	{
 		m_paeMajorCivApproach[iI] = NO_MAJOR_CIV_APPROACH;
 
 		m_paeOpinionTowardsUsGuess[iI] = NO_MAJOR_CIV_OPINION;
@@ -1498,9 +1508,9 @@ void CvDiplomacyAI::Read(FDataStream& kStream)
 
 	kStream >> m_eDiploPersonalityType;
 
-
-	ArrayWrapper<char> wrapMajorOpinion(MAX_MAJOR_CIVS, m_paeMajorCivOpinion);
-	kStream >> wrapMajorOpinion;
+	// Opinion
+	ArrayWrapper<char> wrapm_paeMajorCivOpinion(MAX_MAJOR_CIVS, m_paeMajorCivOpinion);
+	kStream >> wrapm_paeMajorCivOpinion;
 
 	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 	{
@@ -2210,7 +2220,7 @@ void CvDiplomacyAI::Write(FDataStream& kStream) const
 
 	kStream << m_eDiploPersonalityType;
 
-
+	// Opinion
 	kStream << ArrayWrapper<char>(MAX_MAJOR_CIVS, m_paeMajorCivOpinion);
 
 	for(iI = 0; iI < MAX_MAJOR_CIVS; iI++)
@@ -2956,6 +2966,110 @@ bool CvDiplomacyAI::IsScientist() const
 {
 	return (GetDiploPersonalityType() == DIPLO_PERSONALITY_SCIENTIST);
 }
+
+
+// ************************************
+// Memory Management
+// ************************************
+
+/// What is our Diplomatic Opinion of this Major Civ?
+MajorCivOpinionTypes CvDiplomacyAI::GetMajorCivOpinion(PlayerTypes ePlayer) const
+{
+	CvAssertMsg(ePlayer >= 0 && ePlayer < MAX_MAJOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function GetMajorCivOpinion.");
+	if (ePlayer < 0 || ePlayer >= MAX_MAJOR_CIVS) return NO_MAJOR_CIV_OPINION;
+
+	return (MajorCivOpinionTypes) m_paeMajorCivOpinion[(int)ePlayer];
+}
+
+/// Sets what our Diplomatic Opinion of a Major Civ is
+void CvDiplomacyAI::SetMajorCivOpinion(PlayerTypes ePlayer, MajorCivOpinionTypes eOpinion)
+{
+	CvAssertMsg(ePlayer >= 0 && ePlayer < MAX_MAJOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function SetMajorCivOpinion.");
+	CvAssertMsg(eOpinion >= 0 && eOpinion < NUM_MAJOR_CIV_OPINIONS, "DIPLOMACY AI: Invalid MajorCivOpinionType when calling function SetMajorCivOpinion.");
+	if (ePlayer < 0 || ePlayer >= MAX_MAJOR_CIVS) return;
+	if (eOpinion < 0 || eOpinion >= NUM_MAJOR_CIV_OPINIONS) return;
+
+	m_paeMajorCivOpinion[(int)ePlayer] = eOpinion;
+}
+
+/// How many Majors do we have a particular Opinion towards?
+int CvDiplomacyAI::GetNumMajorCivOpinion(MajorCivOpinionTypes eOpinion) const
+{
+	CvAssertMsg(eOpinion >= 0 && eOpinion < NUM_MAJOR_CIV_OPINIONS, "DIPLOMACY AI: Invalid MajorCivOpinionType when calling function GetNumMajorCivOpinion.");
+	if (eOpinion < 0 || eOpinion >= NUM_MAJOR_CIV_OPINIONS) return 0;
+
+	PlayerTypes eMajor;
+	int iCount = 0;
+
+	for (int iMajorLoop = 0; iMajorLoop < MAX_MAJOR_CIVS; iMajorLoop++)
+	{
+		eMajor = (PlayerTypes) iMajorLoop;
+		if (GetMajorCivOpinion(eMajor) == eOpinion)
+		{
+			iCount++;
+		}
+	}
+
+	return iCount;
+}
+
+/// What is our overall Diplomatic Opinion of this Major Civ's neighbors?
+MajorCivOpinionTypes CvDiplomacyAI::GetNeighborOpinion(PlayerTypes ePlayer) const
+{
+	CvAssertMsg(ePlayer >= 0 && ePlayer < MAX_MAJOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function GetNeighborOpinion.");
+	if (ePlayer < 0 || ePlayer >= MAX_MAJOR_CIVS) return NO_MAJOR_CIV_OPINION;
+
+	PlayerTypes eLoopPlayer;
+	MajorCivOpinionTypes eLoopOpinion;
+	int iNumPlayers = 0;
+	int iBad = 0;
+	int iGood = 0;
+	int iNeutral = 0;
+
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	{
+		eLoopPlayer = (PlayerTypes) iPlayerLoop;
+
+		if (IsPlayerValid(eLoopPlayer) && GET_PLAYER(eLoopPlayer).isMajorCiv() && eLoopPlayer != ePlayer)
+		{
+			if (GET_PLAYER(eLoopPlayer).GetProximityToPlayer(ePlayer) == PLAYER_PROXIMITY_NEIGHBORS)
+			{
+				eLoopOpinion = GetMajorCivOpinion(eLoopPlayer);
+				iNumPlayers++;
+
+				if (eLoopOpinion <= MAJOR_CIV_OPINION_COMPETITOR)
+				{
+					iBad++;
+				}
+				else if (eLoopOpinion >= MAJOR_CIV_OPINION_FAVORABLE)
+				{
+					iGood++;
+				}
+				else
+				{
+					iNeutral++;
+				}
+			}
+		}
+	}
+
+	if (iGood > iNeutral && iGood > iBad)
+	{
+		return MAJOR_CIV_OPINION_FRIEND;
+	}
+	else if (iBad > iGood && iBad > iNeutral)
+	{
+		return MAJOR_CIV_OPINION_ENEMY;
+	}
+	else if (iNumPlayers > 0)
+	{
+		return MAJOR_CIV_OPINION_NEUTRAL;
+	}
+
+	return NO_MAJOR_CIV_OPINION;
+}
+
+//	-----------------------------------------------------------------------------------------------
 
 
 // ************************************
@@ -3880,43 +3994,6 @@ int CvDiplomacyAI::GetMajorCivOpinionWeight(PlayerTypes ePlayer)
 #endif
 
 	return iOpinionWeight;
-}
-
-/// What is our Diplomatic Opinion of this Major Civ?
-MajorCivOpinionTypes CvDiplomacyAI::GetMajorCivOpinion(PlayerTypes ePlayer) const
-{
-	CvAssertMsg(ePlayer >= 0, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(ePlayer < MAX_MAJOR_CIVS, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	return (MajorCivOpinionTypes) m_paeMajorCivOpinion[ePlayer];
-}
-
-/// Sets what our Diplomatic Opinion of a Major Civ is
-void CvDiplomacyAI::SetMajorCivOpinion(PlayerTypes ePlayer, MajorCivOpinionTypes eOpinion)
-{
-	CvAssertMsg(ePlayer >= 0, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(ePlayer < MAX_MAJOR_CIVS, "DIPLOMACY_AI: Invalid Player Index.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(eOpinion >= 0, "DIPLOMACY_AI: Invalid MajorCivOpinionType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(eOpinion < NUM_MAJOR_CIV_OPINIONS, "DIPLOMACY_AI: Invalid MajorCivOpinionType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	m_paeMajorCivOpinion[ePlayer] = eOpinion;
-}
-
-/// How many Majors do we have a particular Opinion towards?
-int CvDiplomacyAI::GetNumMajorCivOpinion(MajorCivOpinionTypes eOpinion) const
-{
-	CvAssertMsg(eOpinion >= 0, "DIPLOMACY_AI: Invalid MajorCivOpinionType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-	CvAssertMsg(eOpinion < NUM_MAJOR_CIV_OPINIONS, "DIPLOMACY_AI: Invalid MajorCivOpinionType.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-
-	int iCount = 0;
-
-	for(int iMajorLoop = 0; iMajorLoop < MAX_MAJOR_CIVS; iMajorLoop++)
-	{
-		if(GetMajorCivOpinion((PlayerTypes) iMajorLoop) == eOpinion)
-		{
-			iCount++;
-		}
-	}
-
-	return iCount;
 }
 
 /// Returns our guess as to another player's Diplomatic Opinion towards us
@@ -42844,67 +42921,6 @@ int CvDiplomacyAI::GetOpenBordersScore(PlayerTypes ePlayer)
 	return iOpinionWeight;
 }
 
-/// What are our opinions of this player's neigbors?
-MajorCivOpinionTypes CvDiplomacyAI::GetNeighborOpinion(PlayerTypes ePlayer) const
-{
-	if(ePlayer == NO_PLAYER)
-	{
-		return NO_MAJOR_CIV_OPINION;
-	}
-	int iBad = 0;
-	int iNeutral = 0;
-	int iGood = 0;
-	PlayerTypes eLoopPlayer;
-
-	for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-	{
-		eLoopPlayer = (PlayerTypes) iPlayerLoop;
-		if(eLoopPlayer == NO_PLAYER)
-		{
-			continue;
-		}
-		if(GET_PLAYER(eLoopPlayer).isMinorCiv())
-		{
-			continue;
-		}
-		if(GET_PLAYER(eLoopPlayer).GetID() == m_pPlayer->GetID())
-		{
-			continue;
-		}
-		if(GET_PLAYER(eLoopPlayer).isAlive() && GET_PLAYER(eLoopPlayer).GetProximityToPlayer(ePlayer) == PLAYER_PROXIMITY_NEIGHBORS)
-		{
-			
-			if(GetMajorCivOpinion(eLoopPlayer) <= MAJOR_CIV_OPINION_COMPETITOR)
-			{
-				iBad++;
-			}
-			else if(GetMajorCivOpinion(eLoopPlayer) == MAJOR_CIV_OPINION_NEUTRAL)
-			{
-				iNeutral++;
-			}
-			else if(GetMajorCivOpinion(eLoopPlayer) >= MAJOR_CIV_OPINION_FAVORABLE)
-			{
-				iGood++;
-			}
-		}
-	}
-	if(iGood > iNeutral && iGood > iBad)
-	{
-		return MAJOR_CIV_OPINION_FRIEND;
-	}
-	else if(iNeutral > iGood && iNeutral > iBad)
-	{
-		return MAJOR_CIV_OPINION_NEUTRAL;
-	}
-	else if(iBad > iGood && iBad > iNeutral)
-	{
-		return MAJOR_CIV_OPINION_ENEMY;
-	}
-	else
-	{
-		return NO_MAJOR_CIV_OPINION;
-	}
-}
 bool CvDiplomacyAI::MusteringForNeighborAttack(PlayerTypes ePlayer) const
 {
 	if(ePlayer == NO_PLAYER)

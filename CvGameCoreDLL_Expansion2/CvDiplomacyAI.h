@@ -128,6 +128,20 @@ public:
 	bool IsCultural() const;
 	bool IsScientist() const;
 
+	// ************************************
+	// Personality Values
+	// ************************************
+
+	/////////////////////////////////////////////////////////
+	// Opinion
+	/////////////////////////////////////////////////////////
+
+	MajorCivOpinionTypes GetMajorCivOpinion(PlayerTypes ePlayer) const;
+	void SetMajorCivOpinion(PlayerTypes ePlayer, MajorCivOpinionTypes eOpinion);
+
+	int GetNumMajorCivOpinion(MajorCivOpinionTypes eOpinion) const;
+	MajorCivOpinionTypes GetNeighborOpinion(PlayerTypes ePlayer) const;
+
 	/////////////////////////////////////////////////////////
 	// Turn Stuff
 	/////////////////////////////////////////////////////////
@@ -143,9 +157,6 @@ public:
 	void DoUpdateOnePlayerOpinion(PlayerTypes ePlayer);
 
 	int GetMajorCivOpinionWeight(PlayerTypes ePlayer);
-	MajorCivOpinionTypes GetMajorCivOpinion(PlayerTypes ePlayer) const;
-	void SetMajorCivOpinion(PlayerTypes ePlayer, MajorCivOpinionTypes eOpinion);
-	int GetNumMajorCivOpinion(MajorCivOpinionTypes eOpinion) const;
 
 	// Our guess as to another player's opinion towards us
 	MajorCivOpinionTypes GetOpinionTowardsUsGuess(PlayerTypes ePlayer);
@@ -1508,7 +1519,6 @@ public:
 	int GetDPWithAnyEnemyScore(PlayerTypes ePlayer);
 #if defined(MOD_BALANCE_CORE_DEALS)
 	int GetOpenBordersScore(PlayerTypes ePlayer);
-	MajorCivOpinionTypes GetNeighborOpinion(PlayerTypes ePlayer) const;
 	bool MusteringForNeighborAttack(PlayerTypes ePlayer) const;
 #endif
 	int GetFriendDenouncementScore(PlayerTypes ePlayer);
@@ -1730,7 +1740,9 @@ private:
 		char m_aiPersonalityMajorCivApproachBiases[NUM_MAJOR_CIV_APPROACHES];
 		char m_aiPersonalityMinorCivApproachBiases[NUM_MINOR_CIV_APPROACHES];
 
+		// Opinion
 		char m_aeMajorCivOpinion[MAX_MAJOR_CIVS];
+
 		char m_aeMajorCivApproach[MAX_MAJOR_CIVS];
 		char m_aeMinorCivApproach[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
 		char m_aeOpinionTowardsUsGuess[MAX_MAJOR_CIVS];
@@ -2074,7 +2086,9 @@ private:
 
 	char m_eDiploPersonalityType;
 
+	// Opinion
 	char* m_paeMajorCivOpinion;
+
 	char** m_ppaaeApproachValues;
 	char** m_ppaaeOtherPlayerMajorCivOpinion;
 	char** m_ppaaeOtherPlayerMajorCivApproach;
