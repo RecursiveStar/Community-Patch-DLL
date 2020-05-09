@@ -1763,7 +1763,6 @@ private:
 		char m_aeMinorCivApproach[MAX_MINOR_CIVS];
 		bool m_abWantToRouteToMinor[MAX_MINOR_CIVS];
 
-		char m_aeMinorCivApproach[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
 		char m_aeOpinionTowardsUsGuess[MAX_MAJOR_CIVS];
 		char m_aeApproachTowardsUsGuess[MAX_MAJOR_CIVS];
 		char m_aeApproachTowardsUsGuessCounter[MAX_MAJOR_CIVS];

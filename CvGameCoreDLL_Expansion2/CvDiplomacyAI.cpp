@@ -3256,9 +3256,9 @@ bool CvDiplomacyAI::IsWantToRouteConnectToMinor(PlayerTypes eMinor)
 	int iMinorIndex = ((int) eMinor - MAX_MAJOR_CIVS);
 
 	CvAssertMsg(iMinorIndex >= 0 && iMinorIndex < MAX_MINOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function IsWantToRouteConnectToMinor.");
-	if (iMinorIndex < 0 || iMinorIndex >= MAX_MINOR_CIVS) return;
+	if (iMinorIndex < 0 || iMinorIndex >= MAX_MINOR_CIVS) return false;
 
-	return (bool) m_pabWantToRouteToMinor[iArrayIndex];
+	return (bool) m_pabWantToRouteToMinor[iMinorIndex];
 }
 
 /// Sets if this AI want to connect to a minor with a route
@@ -3270,7 +3270,7 @@ void CvDiplomacyAI::SetWantToRouteConnectToMinor(PlayerTypes eMinor, bool bWant)
 	CvAssertMsg(iMinorIndex >= 0 && iMinorIndex < MAX_MINOR_CIVS, "DIPLOMACY AI: Invalid Player Index when calling function SetWantToRouteConnectToMinor.");
 	if (iMinorIndex < 0 || iMinorIndex >= MAX_MINOR_CIVS) return;
 
-	m_pabWantToRouteToMinor[iArrayIndex] = bWant;
+	m_pabWantToRouteToMinor[iMinorIndex] = bWant;
 }
 
 /// How many Minors do we have a particular Approach towards?
