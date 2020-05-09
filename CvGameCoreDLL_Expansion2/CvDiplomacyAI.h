@@ -88,14 +88,45 @@ public:
 
 	void update();
 
+	// ************************************
+	// Pointers
+	// ************************************
+
 	CvPlayer* GetPlayer();
 	const CvPlayer* GetPlayer() const;
 	TeamTypes GetTeam() const;
 
+	// ************************************
+	// Personality Values
+	// ************************************
+
+	int GetRandomPersonalityWeight(int iOriginalValue);
 	void DoInitializePersonality();
-	int GetRandomPersonalityWeight(int iOriginalValue) const;
-	
-	void DoInitializeMajorDiploType();
+	void DoInitializeDiploPersonalityType();
+
+	int GetVictoryCompetitiveness() const;
+	int GetWonderCompetitiveness() const;
+	int GetMinorCivCompetitiveness() const;
+	int GetBoldness() const;
+	int GetDiploBalance() const;
+	int GetWarmongerHate() const;
+	int GetDenounceWillingness() const;
+	int GetDoFWillingness() const;
+	int GetLoyalty() const;
+	int GetNeediness() const;
+	int GetForgiveness() const;
+	int GetChattiness() const;
+	int GetMeanness() const;
+
+	int GetPersonalityMajorCivApproachBias(MajorCivApproachTypes eApproach) const;
+	int GetPersonalityMinorCivApproachBias(MinorCivApproachTypes eApproach) const;
+
+	DiploPersonalityTypes GetDiploPersonalityType() const;
+	void SetDiploPersonalityType(DiploPersonalityTypes eDiploPersonalityType);
+	bool IsConqueror() const;
+	bool IsDiplomat() const;
+	bool IsCultural() const;
+	bool IsScientist() const;
 
 	/////////////////////////////////////////////////////////
 	// Turn Stuff
@@ -610,34 +641,6 @@ public:
 	// Purely visual stuff
 	bool IsShowBaseOpinionScore() const;
 	bool IsHideNeutralOpinionValues() const;
-
-	/////////////////////////////////////////////////////////
-	// Personality Members
-	/////////////////////////////////////////////////////////
-
-	int GetVictoryCompetitiveness() const;
-	int GetWonderCompetitiveness() const;
-	int GetMinorCivCompetitiveness() const;
-	int GetBoldness() const;
-	int GetDiploBalance() const;
-	int GetWarmongerHate() const;
-	int GetDenounceWillingness() const;
-	int GetDoFWillingness() const;
-	int GetLoyalty() const;
-	int GetNeediness() const;
-	int GetForgiveness() const;
-	int GetChattiness() const;
-	int GetMeanness() const;
-
-	int GetPersonalityMajorCivApproachBias(MajorCivApproachTypes eApproach) const;
-	int GetPersonalityMinorCivApproachBias(MinorCivApproachTypes eApproach) const;
-
-	MajorDiploTypes GetMajorDiploType() const;
-	void SetMajorDiploType(MajorDiploTypes eMajorDiploType);
-	bool IsConqueror() const;
-	bool IsDiplomat() const;
-	bool IsCultural() const;
-	bool IsScientist() const;
 
 	/////////////////////////////////////////////////////////
 	// Evaluation of Other Players' Tendencies
@@ -1719,7 +1722,14 @@ private:
 		DiplomacyAIData();
 
 		//Arrays
+		
+		// Leader Communication
 		short m_aDiploLogStatementTurnCountScratchPad[NUM_DIPLO_LOG_STATEMENT_TYPES];
+
+		// Personality Values
+		char m_aiPersonalityMajorCivApproachBiases[NUM_MAJOR_CIV_APPROACHES];
+		char m_aiPersonalityMinorCivApproachBiases[NUM_MINOR_CIV_APPROACHES];
+
 		char m_aeMajorCivOpinion[MAX_MAJOR_CIVS];
 		char m_aeMajorCivApproach[MAX_MAJOR_CIVS];
 		char m_aeMinorCivApproach[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
@@ -1771,8 +1781,6 @@ private:
 		char m_aeWarDamageLevel[REALLY_MAX_PLAYERS];
 		int m_aiWarValueLost[REALLY_MAX_PLAYERS];
 		char m_aeWarmongerThreat[REALLY_MAX_PLAYERS];
-		char m_aiPersonalityMajorCivApproachBiases[NUM_MAJOR_CIV_APPROACHES];
-		char m_aiPersonalityMinorCivApproachBiases[NUM_MINOR_CIV_APPROACHES];
 		DeclarationLogData m_aDeclarationsLog[MAX_DIPLO_LOG_STATEMENTS];
 
 		// Things a player has told the AI
@@ -2044,8 +2052,27 @@ private:
 
 #endif
 
-	// Scratch pad to keep track of Diplo Messages we've sent out in the past
-	short* m_paDiploLogStatementTurnCountScratchPad;
+	// Leader Communication
+	short* m_paDiploLogStatementTurnCountScratchPad; // Scratch pad to keep track of Diplo Messages we've sent out in the past
+
+	// Personality Values
+	char m_iVictoryCompetitiveness;
+	char m_iWonderCompetitiveness;
+	char m_iMinorCivCompetitiveness;
+	char m_iBoldness;
+	char m_iDiploBalance;
+	char m_iWarmongerHate;
+	char m_iDenounceWillingness;
+	char m_iDoFWillingness;
+	char m_iLoyalty;
+	char m_iNeediness;
+	char m_iForgiveness;
+	char m_iChattiness;
+	char m_iMeanness;
+	char* m_paiPersonalityMajorCivApproachBiases;
+	char* m_paiPersonalityMinorCivApproachBiases;
+
+	char m_eDiploPersonalityType;
 
 	char* m_paeMajorCivOpinion;
 	char** m_ppaaeApproachValues;
@@ -2058,8 +2085,6 @@ private:
 	char* m_paeOpinionTowardsUsGuess;
 	char* m_paeApproachTowardsUsGuess;
 	char* m_paeApproachTowardsUsGuessCounter;
-
-	char m_eMajorDiploType;
 
 	char m_eDemandTargetPlayer;
 	bool m_bDemandReady;
@@ -2273,25 +2298,6 @@ private:
 	bool* m_pabPlayerAgreedNotToDig;
 
 	bool* m_pabPlayerBrokenCoopWarPromise;
-
-	// Personality Members
-
-	int m_iVictoryCompetitiveness;
-	int m_iWonderCompetitiveness;
-	int m_iMinorCivCompetitiveness;
-	int m_iBoldness;
-	int m_iDiploBalance;
-	int m_iWarmongerHate;
-	int m_iDenounceWillingness;
-	int m_iDoFWillingness;
-	int m_iLoyalty;
-	int m_iNeediness;
-	int m_iForgiveness;
-	int m_iChattiness;
-	int m_iMeanness;
-
-	char* m_paiPersonalityMajorCivApproachBiases;
-	char* m_paiPersonalityMinorCivApproachBiases;
 
 	// Evaluation of Other Players' Tendencies
 
