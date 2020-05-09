@@ -2098,7 +2098,7 @@ private:
 
 	// Approach
 	char* m_paeMajorCivApproach;
-	int** m_ppaaiApproachValues;
+	int** m_peaaiApproachValues;
 	char* m_paeWarFace;
 
 	char** m_ppaaeOtherPlayerMajorCivOpinion;
