@@ -129,7 +129,7 @@ public:
 	bool IsScientist() const;
 
 	// ************************************
-	// Personality Values
+	// Memory Management
 	// ************************************
 
 	/////////////////////////////////////////////////////////
@@ -141,6 +141,22 @@ public:
 
 	int GetNumMajorCivOpinion(MajorCivOpinionTypes eOpinion) const;
 	MajorCivOpinionTypes GetNeighborOpinion(PlayerTypes ePlayer) const;
+
+	/////////////////////////////////////////////////////////
+	// Approach
+	/////////////////////////////////////////////////////////
+
+	MajorCivApproachTypes GetMajorCivApproach(PlayerTypes ePlayer, bool bHideTrueFeelings = false) const;
+	void SetMajorCivApproach(PlayerTypes ePlayer, MajorCivApproachTypes eApproach);
+
+	int GetPlayerApproachValue(PlayerTypes ePlayer, MajorCivApproachTypes eApproach) const;
+	void SetPlayerApproachValue(PlayerTypes ePlayer, MajorCivApproachTypes eApproach, int iValue);
+
+	// War Face: If we're planning for war, how are we acting towards ePlayer?
+	WarFaceTypes GetWarFace(PlayerTypes ePlayer) const;
+	void SetWarFace(PlayerTypes ePlayer, WarFaceTypes eWarFace);
+
+	int GetNumMajorCivApproach(MajorCivApproachTypes eApproach, bool bHideTrueFeelings = false) const;
 
 	/////////////////////////////////////////////////////////
 	// Turn Stuff
@@ -182,13 +198,6 @@ public:
 	void DoUpdateHumanApproachTowardsMajorCiv(PlayerTypes ePlayer);
 	void DoUpdateMajorCivApproachWithNoCities(PlayerTypes ePlayer);
 	void DoUpdateApproachTowardsMajorCivWithNoCities(PlayerTypes ePlayer);
-
-	MajorCivApproachTypes GetMajorCivApproach(PlayerTypes ePlayer, bool bHideTrueFeelings = false) const;
-	void SetMajorCivApproach(PlayerTypes ePlayer, MajorCivApproachTypes eApproach);
-	int GetNumMajorCivApproach(MajorCivApproachTypes eApproach) const;
-
-	int GetPlayerApproachValue(PlayerTypes ePlayer, MajorCivApproachTypes eApproach) const;
-	void SetPlayerApproachValue(PlayerTypes ePlayer, MajorCivApproachTypes eApproach, int iValue);
 
 	// Minor Civs
 	void DoUpdateMinorCivApproaches();
@@ -294,10 +303,6 @@ public:
 	void MakeWar();
 	bool DeclareWar(PlayerTypes ePlayer);
 	bool DeclareWar(TeamTypes eTeam);
-
-	// War Face: If we're planning for war, how are we acting towards ePlayer?
-	WarFaceTypes GetWarFaceWithPlayer(PlayerTypes ePlayer) const;
-	void SetWarFaceWithPlayer(PlayerTypes ePlayer, WarFaceTypes eFace);
 
 	// Mustering For Attack: Is there Sneak Attack Operation completed and ready to roll against ePlayer?
 	bool IsArmyInPlaceForAttack(PlayerTypes ePlayer) const;
@@ -1743,7 +1748,12 @@ private:
 		// Opinion
 		char m_aeMajorCivOpinion[MAX_MAJOR_CIVS];
 
+		// Approach
 		char m_aeMajorCivApproach[MAX_MAJOR_CIVS];
+		int m_aaeApproachValues[MAX_MAJOR_CIVS*NUM_MAJOR_CIV_APPROACHES];
+		int* m_apaeApproachValues[MAX_MAJOR_CIVS];
+		char m_aeWarFace[MAX_MAJOR_CIVS];
+
 		char m_aeMinorCivApproach[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
 		char m_aeOpinionTowardsUsGuess[MAX_MAJOR_CIVS];
 		char m_aeApproachTowardsUsGuess[MAX_MAJOR_CIVS];
@@ -1761,7 +1771,6 @@ private:
 		bool m_abWantsSneakAttack[MAX_MAJOR_CIVS];
 #endif
 		bool m_abWantToRouteToMinor[REALLY_MAX_PLAYERS-MAX_MAJOR_CIVS];
-		char m_aeWarFace[REALLY_MAX_PLAYERS];
 		char m_aeWarState[REALLY_MAX_PLAYERS];
 		char m_aeWarProjection[REALLY_MAX_PLAYERS];
 		char m_aeLastWarProjection[REALLY_MAX_PLAYERS];
@@ -1968,7 +1977,6 @@ private:
 		short m_aiOtherPlayerTurnsSinceTheySupportedOurHosting[MAX_MAJOR_CIVS];
 
 		//2D Arrays
-		char* m_apaeApproachValues[MAX_MAJOR_CIVS];
 		char* m_apaeOtherPlayerMajorCivOpinion[REALLY_MAX_PLAYERS];
 		char* m_apaeOtherPlayerMajorCivApproach[REALLY_MAX_PLAYERS];
 		short* m_apaiOtherPlayerMajorCivApproachCounter[REALLY_MAX_PLAYERS];
@@ -1984,7 +1992,6 @@ private:
 		char* m_apacCoopWarAcceptedState[MAX_MAJOR_CIVS];
 		short* m_apaiCoopWarCounter[MAX_MAJOR_CIVS];
 
-		char m_aaeApproachValues[MAX_MAJOR_CIVS* NUM_MAJOR_CIV_APPROACHES];
 		char m_aaeOtherPlayerMajorCivOpinion[MAX_MAJOR_CIVS* MAX_MAJOR_CIVS];
 		char m_aaeOtherPlayerMajorCivApproach[MAX_MAJOR_CIVS* MAX_MAJOR_CIVS];
 		short m_aaiOtherPlayerMajorCivApproachCounter[MAX_MAJOR_CIVS* MAX_MAJOR_CIVS];
@@ -2089,12 +2096,15 @@ private:
 	// Opinion
 	char* m_paeMajorCivOpinion;
 
-	char** m_ppaaeApproachValues;
+	// Approach
+	char* m_paeMajorCivApproach;
+	int** m_ppaaeApproachValues;
+	char* m_paeWarFace;
+
 	char** m_ppaaeOtherPlayerMajorCivOpinion;
 	char** m_ppaaeOtherPlayerMajorCivApproach;
 	short** m_ppaaiOtherPlayerMajorCivApproachCounter;
 
-	char* m_paeMajorCivApproach;
 	char* m_paeMinorCivApproach;
 	char* m_paeOpinionTowardsUsGuess;
 	char* m_paeApproachTowardsUsGuess;
@@ -2126,7 +2136,6 @@ private:
 #endif
 	bool* m_pabWantToRouteToMinor;
 
-	char* m_paeWarFace;
 	char* m_paeWarState;
 	char* m_paeWarProjection;
 	char* m_paeLastWarProjection;
